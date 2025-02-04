@@ -1,0 +1,20 @@
+{
+  "name": "pdf2html",
+  "version": "1.0.0",
+  "description": "Convert PDF to Html",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alan Alves and Leonardo Irazorque",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "express": "^4.21.2",
+    "express-fileupload": "^1.5.1",
+    "node-poppler": "^7.2.3",
+    "nodemon": "^3.1.9",
+    "sequelize": "^6.37.5"
+  }
+}
