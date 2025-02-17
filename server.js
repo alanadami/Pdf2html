@@ -41,6 +41,7 @@ app.post("/upload", (req, res) => {
         // Comando para converter PDF para HTML
         const command = `${popplerPath} "${inputPDF}" "${outputHTML}"`;
 
+       
         // Executa o comando
         exec(command, (error, stdout, stderr) => {
             if (error) {
@@ -53,6 +54,7 @@ app.post("/upload", (req, res) => {
 
             console.log(`Conversão concluída! Arquivo salvo como ${outputHTML}`);
 
+            
             // Enviar o HTML convertido para o cliente
             res.download(outputHTML, (err) => {
                 if (err) {
@@ -64,9 +66,8 @@ app.post("/upload", (req, res) => {
     });
 });
 
-
 // Inicia o servidor
-const PORT = 3000;
+const PORT = 5000;
 app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
+    console.log(`Servidor rodando em http://localhost:${PORT}/upload`);
 });

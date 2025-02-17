@@ -3,13 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload de PDF</title>
+    <title>Upload e Processamento de PDF</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #2c3e50;
+            color: #ecf0f1;
+        }
+
+        .container {
+            background: #34495e;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            display: block;
+            background: #2980b9;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .file-label:hover {
+            background: #1f6692;
+        }
+
+        .button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .convert {
+            background: #27ae60;
+            color: white;
+        }
+
+        .convert:hover {
+            background: #1e8449;
+        }
+
+        .process {
+            background: #925015;
+            color: white;
+        }
+
+        .process:hover {
+            background: #d35400;
+        }
+
+        .button:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        #fileName {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
-    <h2>Enviar PDF para Conversão</h2>
-    <form action="/upload" method="POST" enctype="multipart/form-data">
-        <input type="file" name="pdf" accept=".pdf" required>
-        <button type="submit">Converter para HTML</button>
-    </form>
+    <div class="container">
+        <h2>Extrator de PDF</h2>
+        <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+            <label for="fileInput" class="file-label">Escolher PDF</label>
+            <input type="file" name="pdf" id="fileInput" accept=".pdf" required>
+            <p id="fileName">Nenhum arquivo selecionado</p>
+            <button id="btnConverter" class="button convert" type="submit">CONVERTER ARQUIVO</button>
+        </form>
+        
+        <button id="btnProcessar" class="button process" disabled>EXTRAIR DADOS E BAIXAR</button>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const fileInput = document.getElementById("fileInput");
+            const fileName = document.getElementById("fileName");
+            const btnConverter = document.getElementById("btnConverter");
+            const btnProcessar = document.getElementById("btnProcessar");
+
+            fileInput.addEventListener("change", () => {
+                fileName.textContent = fileInput.files.length ? fileInput.files[0].name : "Nenhum arquivo selecionado";
+            });
+
+            document.getElementById("uploadForm").addEventListener("submit", async (event) => {
+                event.preventDefault();
+                btnConverter.disabled = true;
+                btnConverter.textContent = "Convertendo...";
+
+                const formData = new FormData(event.target);
+
+                try {
+                    const response = await fetch("/upload", { method: "POST", body: formData });
+                    if (!response.ok) throw new Error("Erro ao converter o arquivo.");
+                    alert("Arquivo enviado com sucesso!");
+                    btnProcessar.disabled = false;
+                } catch (error) {
+                    alert("Erro ao enviar o arquivo.");
+                } finally {
+                    btnConverter.disabled = false;
+                    btnConverter.textContent = "Converter para HTML";
+                }
+            });
+
+            btnProcessar.addEventListener("click", async () => {
+                btnProcessar.disabled = true;
+                btnProcessar.textContent = "Processando...";
+                try {
+                    const response = await fetch("/extrair");
+                    if (!response.ok) throw new Error("Erro ao processar os dados.");
+                    const data = await response.json();
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "dados_extraidos.json";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                } catch (error) {
+                    alert("Erro ao processar os dados.");
+                } finally {
+                    btnProcessar.disabled = false;
+                    btnProcessar.textContent = "Extrair Dados e Baixar JSON";
+                }
+            });
+        });
+    </script>
 </body>
 </html>

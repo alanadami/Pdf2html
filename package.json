@@ -1,20 +1,36 @@
 {
-  "name": "pdf2html",
+  "name": "extrator-pdf",
   "version": "1.0.0",
+  "bin": "index02.js",
   "description": "Convert PDF to Html",
-  "main": "index.js",
+  "main": "index02.js",
   "type": "commonjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "pkg . --out-path dist",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "node install-poppler.js"
   },
-  "author": "Alan Alves and Leonardo Irazorque",
+  "author": "galves.alan@gmail.com",
   "license": "ISC",
   "dependencies": {
     "cheerio": "^1.0.0",
+    "cors": "^2.8.5",
+    "download": "^8.0.0",
     "express": "^4.21.2",
     "express-fileupload": "^1.5.1",
+    "multer": "^1.4.5-lts.1",
     "node-poppler": "^7.2.3",
     "nodemon": "^3.1.9",
     "sequelize": "^6.37.5"
+  },
+  "pkg": {
+    "assets": [
+      "uploads/**/*",
+      "outputFolder/**/*",
+      "poppler/**"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ]
   }
 }
