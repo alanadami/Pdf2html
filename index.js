@@ -3,7 +3,8 @@ const fileUpload = require("express-fileupload");
 const path = require("path");
 const { exec } = require("child_process");
 const fs = require("fs");
-const { geradortxt } = require("./geradortxt")
+//const { geradortxt } = require("./geradortxt");
+const { TEXT } = require("sequelize");
 
 const app = express();
 
@@ -288,6 +289,56 @@ function extrairDadosDoHTML(caminho) {
         console.log('Arquivo processos.json salvo com sucesso!');
 
 
+        //---------------------- Escrever o txt -------------------------
+
+        
+        
+                // Caminho do arquivo de saída
+        const filePath = path.join(__dirname, "processosTxt.txt");
+
+        // Função para gerar o arquivo TXT
+        function gerartxt(dados) {
+            if (!dados || dados.length === 0) {
+                console.log("Nenhum dado para processar.");
+                return;
+            }
+
+            const lines = [];
+
+            dados.forEach((item, index) => {
+                // Filtrar apenas os campos desejados
+                const dadosParaTxt = [
+                    index + 1, // Número sequencial
+                    item.processo,
+                    item.descricao,
+                    item.titular,
+                    item.dataDeposito,
+                    item.despacho
+                ];
+
+                // Criar uma linha separando os campos por tabulação
+                lines.push(dadosParaTxt.join("\t"));
+            });
+
+            // Escreve no arquivo
+            fs.writeFileSync(filePath, lines.join("\n"), "utf-8");
+
+            console.log("Arquivo 'processosTxt.txt' gerado com sucesso!");
+        }
+
+        // Chama a função após um pequeno atraso (caso os dados venham de outra fonte assíncrona)
+        setTimeout(() => gerartxt(dadosProcessos), 4000);
+
+        // //--------------------------------------------------------------------------------
+
+
+
+
+
+
+        
+        
+        
         //console.log("conteúdo dos dadosProcessos: ", dadosProcessos);
         return dadosProcessos;
         
@@ -301,9 +352,8 @@ function extrairDadosDoHTML(caminho) {
 res.json(dados);
 
 
-
-
 });
+
 
 
 // Inicia o servidor

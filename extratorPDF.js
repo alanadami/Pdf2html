@@ -57,24 +57,6 @@ console.log("Pastas prontas! Conteúdo antigo removido.");
 
 
 
-//---Até aqui funcionando-------------- Criação dos diretórios -------------------------
-// // Define um diretório seguro para os arquivos gerados
-//     //Cria o diretório na pasta home do SO.
-// const baseDir = path.join(os.homedir(), "extrator-pdf");
-//     //Cria subpastas dentro do diretório
-// const uploadsFolder = path.join(baseDir, "uploads");
-// const outputFolder = path.join(baseDir, "outputFolder");
-
-// // Verifica se as pastas existem, se não, ela cria. "recursive: true" - garantes a criação de subpastas
-// function criarPastaSeNaoExistir(pasta) {
-//     if (!fs.existsSync(pasta)) {
-//         fs.mkdirSync(pasta, { recursive: true });
-//     }
-// }
-// // Criar os diretórios antes de qualquer operação
-// [uploadsFolder, outputFolder].forEach(criarPastaSeNaoExistir);
-
-
 // Configura o multer para processar uploads
 const upload = multer({
     dest: uploadsFolder,
@@ -295,12 +277,54 @@ function extrairDadosDoHTML(caminho) {
         })
 
 
-        // const jsonDados = JSON.stringify(dadosProcessos, null, 2); // Formatação com espaçamento de 2 espaços
         
-        // fs.writeFileSync('processos.json', jsonDados, 'utf-8');
-        //console.log('Arquivo processos.json salvo com sucesso!');
+
+        
         console.log("Arquivo criado com sucesso!");
         
+
+        //---------------------- Escrever o txt -------------------------
+        
+                
+                
+                        // Caminho do arquivo de saída
+                const filePath = path.join(__dirname, "processosTxt.txt");
+        
+                // Função para gerar o arquivo TXT
+                function gerartxt(dados) {
+                    if (!dados || dados.length === 0) {
+                        console.log("Nenhum dado para processar.");
+                        return;
+                    }
+        
+                    const lines = [];
+        
+                    dados.forEach((item, index) => {
+                        // Filtrar apenas os campos desejados
+                        const dadosParaTxt = [
+                            index + 1, // Número sequencial
+                            item.processo,
+                            item.descricao,
+                            item.titular,
+                            item.dataDeposito,
+                            item.despacho
+                        ];
+        
+                        // Criar uma linha separando os campos por tabulação
+                        lines.push(dadosParaTxt.join("\t"));
+                    });
+        
+                    // Escreve no arquivo
+                    fs.writeFileSync(filePath, lines.join("\n"), "utf-8");
+        
+                    console.log("Arquivo 'processosTxt.txt' gerado com sucesso!");
+                }
+        
+                // Chama a função após um pequeno atraso (caso os dados venham de outra fonte assíncrona)
+                setTimeout(() => gerartxt(dadosProcessos), 4000);
+        
+                // //--------------------------------------------------------------------------------
+
 
         return dadosProcessos;
         

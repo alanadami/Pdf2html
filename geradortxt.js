@@ -9,9 +9,9 @@ const filePath = path.join(__dirname, "aquivoTXT.txt");
 // Gera o conteúdo do arquivo
 const lines = [];
 
-function gerartxt() {
+function gerartxt(dados) {
 
-    dadosProcessos.forEach((item, index) => {
+    dados.forEach((item, index) => {
         let count = 1; // Contador para numerar as linhas
         for (const [key, value] of Object.entries(item)) {
             lines.push(`${count}\t${key}\t${value}`);
