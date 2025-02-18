@@ -100,10 +100,10 @@
             <label for="fileInput" class="file-label">Escolher PDF</label>
             <input type="file" name="pdf" id="fileInput" accept=".pdf" required>
             <p id="fileName">Nenhum arquivo selecionado</p>
-            <button id="btnConverter" class="button convert" type="submit">CONVERTER ARQUIVO</button>
+            <button id="btnConverter" class="button convert" type="submit">EXTRAIR DADOS</button>
         </form>
         
-        <button id="btnProcessar" class="button process" disabled>EXTRAIR DADOS E BAIXAR</button>
+        <button id="btnProcessar" class="button process" disabled>BAIXAR JSON</button>
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -132,7 +132,7 @@
                     alert("Erro ao enviar o arquivo.");
                 } finally {
                     btnConverter.disabled = false;
-                    btnConverter.textContent = "Converter para HTML";
+                    btnConverter.textContent = "Extrair";
                 }
             });
 
@@ -156,7 +156,7 @@
                     alert("Erro ao processar os dados.");
                 } finally {
                     btnProcessar.disabled = false;
-                    btnProcessar.textContent = "Extrair Dados e Baixar JSON";
+                    btnProcessar.textContent = "Baixar JSON";
                 }
             });
         });
