@@ -125,7 +125,7 @@
             // Expressões regulares
             const regexNumeroProcesso = /<b>(\d{8,})\s*<\/b>\s*<br\s*\/?>/g;
             const regexDescricao = /<b>\d{8,}\s*<\/b>\s*<br\s*\/?>\s*([^<]+)/i;
-            const regexTitular = /Titular:\s*([^<]+?)\s*\[/i;
+            const regexTitular = /Titular(?:\(es\))?:\s*([^<]+)\s*\[([A-Z]{2}(?:\/[A-Z]{2})?)\]/i;
             const regexDetalhes = /Detalhes do despacho:\s*([\s\S]*?)(?=\s*<br\s*\/?>\s*<b>|<br\s*\/?>\s*Procurador:|$)/i;
             const regexPeticao = /Petição \(tipo\):\s*(.*?)(?=<br\/>)/i;
             const regexApresentacao = /Apresentação:\s*(.*?)(?=\s*<br\/>)/i;
@@ -141,6 +141,14 @@
             const regexProcurador = /Procurador:\s*([^<]+)/i;
             const regexRequerente = /Requerente:\s*([^<]+)/;
             const regexClassesReivindicadas = /Classes reivindicadas:\s*([^<]+?)\s*<br\/?>/i;
+            //-------- Novas -----
+            const regexSobrestadores = /Sobrestador(?:es|\(es\)):\s*([^<]+)<br\/>/i;
+            //const regexClassesReivindicadas = /Classes reivindicadas:\s*([^<]+?)\s*<br\/>/i;
+            const regexClassesDeferidas = /Classes deferidas:\s*([^<]+?)\s*<br\/>/i;
+            const regexClassesIndeferidas = /Classes indeferidas:\s*([^<]+)\s*<br\/>/i;
+            //const regexClasses = /Classes:\s*(NCL\(\d+\)\s*[\d\s\w]+)/i;
+            const regexCedente = /Cedente:\s*([^<]+)\s*\[([A-Z]{2}\/[A-Z]{2})\]/i;
+            const regexCessionario = /Cessionário:\s*([^<]+)/i;
 
     // Rota que chama a função e retorna os dados extraídos
     app.get("/extrair", (req, res) => {
@@ -198,6 +206,18 @@
         try {
         const conteudoBruto = fs.readFileSync(caminho, "utf-8");
         const conteudoLimpo = conteudoBruto.replace(/&#\d+;/g, " ").replace(/&amp;/g, "&");
+        
+        //---------------------- só para extrair o conteúdo do html para gerar as regex ------------------
+        // Criar um objeto com os dados
+        const dadosLimpos = { conteudo: conteudoLimpo };
+
+        // Converter para JSON
+        const json = JSON.stringify(dadosLimpos, null, 2); // O `null, 2` formata o JSON com identação
+
+        // Salvar em um arquivo
+        fs.writeFileSync("dadosLimpos.json", json, "utf-8");
+        // -----------------------------------------------------
+        
 
         const processos = [...conteudoLimpo.matchAll(regexNumeroProcesso)].map(
             (match) => ({
@@ -220,7 +240,7 @@
             const descricao = descricaoMatch && descricaoMatch[1] ? descricaoMatch[1].trim() : "Null";
             // Procurar titular dentro do trecho
             const titularMatch = trechoProcesso.match(regexTitular);
-            const titular = titularMatch && titularMatch[1] ? titularMatch[1].trim() : "Null";
+            const titular = titularMatch && titularMatch[1] ? `${titularMatch[1].trim()} [${titularMatch[2]}]` : "Null";
             // Procura por Detalhes do depacho
             const detalhesMatch = trechoProcesso.match(regexDetalhes);
             const detalhes = detalhesMatch && detalhesMatch[1] ? detalhesMatch[1].trim() : "Null";
@@ -265,19 +285,37 @@
             //Requerente
             const requerenteMatch = trechoProcesso.match(regexRequerente);
             const requerente = requerenteMatch && requerenteMatch[1] ? requerenteMatch[1].trim() : "Null";
-
             // Procurar "Classes reivindicadas" dentro do trecho
             const classesNCLMatch = trechoProcesso.match(regexClassesReivindicadas);
             const classesReivindicadas = classesNCLMatch && classesNCLMatch[1] ? classesNCLMatch[1].trim() : "Null";
+
+            //------ Novas -----
+
+             //Sobrestadores
+             const sobrestadoresMatch = trechoProcesso.match(regexSobrestadores);
+             const sobrestadores = sobrestadoresMatch && sobrestadoresMatch[1] ? sobrestadoresMatch[1].trim() : "Null";
+ 
+             // Procurar Classes Deferidas dentro do trecho
+             const classesDeferidasMatch = trechoProcesso.match(regexClassesDeferidas);
+             const classesDeferidas = classesDeferidasMatch && classesDeferidasMatch[1] ? classesDeferidasMatch[1].trim() : "Null";
+             // Procurar Classes Indeferidas dentro do trecho
+             const classesIndeferidasMatch = trechoProcesso.match(regexClassesIndeferidas);
+             const classesIndeferidas = classesIndeferidasMatch && classesIndeferidasMatch[1] ? classesIndeferidasMatch[1].trim() : "Null";
+             //Cedente
+             const cedenteMatch = trechoProcesso.match(regexCedente);
+             const cedente = cedenteMatch && cedenteMatch[1] ? `${cedenteMatch[1].trim()} [${cedenteMatch[2]}]` : "Null";
+             //Cessionário
+             const cessionarioMatch = trechoProcesso.match(regexCessionario);
+             const cessionario = cessionarioMatch && cessionarioMatch[1] ? cessionarioMatch[1].trim() : "Null";
 
             //-------------------------------------------------------------------
 
             //Armazena os dados extraídos em um array de objetos
             dadosProcessos.push({
             processo: proc.processo,
-            despacho: descricao,
+            descricaoDespacho: descricao,
             data: dataLimpa,
-            titular: titular,
+            titular: titular,            
             dataDeposito: dataDeposito,
             recebimentoINPI: dataRecebimento,
             inscricaoInternacional: numeroInscricao,
@@ -290,50 +328,58 @@
             processoAfetado: processoAfetado,
             cfe: cfe,
             NCL: NCL,
-            NCLclasse: classes,
-            NCLReinvidicada: classesReivindicadas
+            classes: classes,
+            classesReivindicadas: classesReivindicadas,
+            classesDeferidas: classesDeferidas,
+            classesIndeferidas: classesIndeferidas,
+            sobrestadores: sobrestadores,
+            cedente: cedente,
+            cessionario: cessionario,
             });
         });
 
         console.log("Arquivo criado com sucesso!");
 
-        //---------------------- Escrever o txt -------------------------
+        // //---------------------- Escrever o txt -------------------------
 
-        // Caminho do arquivo de saída
-        const filePath = path.join(__dirname, "processosTxt.txt");
+        // // Caminho do arquivo de saída
+        // const filePath = path.join(__dirname, "processosTxt.txt");
 
-        // Função para gerar o arquivo TXT
-        function gerartxt(dados) {
-            if (!dados || dados.length === 0) {
-            console.log("Nenhum dado para processar.");
-            return;
-            }
+        // // Função para gerar o arquivo TXT
+        // function gerartxt(dados) {
+        //     if (!dados || dados.length === 0) {
+        //     console.log("Nenhum dado para processar.");
+        //     return;
+        //     }
 
-            const lines = [];
+        //     const lines = [];
 
-            dados.forEach((item, index) => {
-            // Filtrar apenas os campos desejados
-            const dadosParaTxt = [
-                index + 1, // Número sequencial
-                item.processo,
-                item.descricao,
-                item.titular,
-                item.dataDeposito,
-                item.despacho,
-            ];
+        //     dados.forEach((item, index) => {
+        //     // Filtrar apenas os campos desejados
+        //     const dadosParaTxt = [
+        //         index + 1, // Número sequencial
+        //         item.processo,
+        //         item.descricao,
+        //         item.titular,
+        //         item.dataDeposito,
+        //         item.despacho,
+        //     ];
 
-            // Criar uma linha separando os campos por tabulação
-            lines.push(dadosParaTxt.join("\t"));
-            });
+        //     // Criar uma linha separando os campos por tabulação
+        //     lines.push(dadosParaTxt.join("\t"));
+        //     });
 
-            // Escreve no arquivo
-            fs.writeFileSync(filePath, lines.join("\n"), "utf-8");
+        //     // Escreve no arquivo
+        //     fs.writeFileSync(filePath, lines.join("\n"), "utf-8");
 
-            console.log("Arquivo 'processosTxt.txt' gerado com sucesso!");
-        }
+        //     console.log("Arquivo 'processosTxt.txt' gerado com sucesso!");
+        // }
 
-        // Chama a função após um pequeno atraso (caso os dados venham de outra fonte assíncrona)
-        setTimeout(() => gerartxt(dadosProcessos), 4000);
+        // // Chama a função após um pequeno atraso (caso os dados venham de outra fonte assíncrona)
+        // setTimeout(() => gerartxt(dadosProcessos), 4000);
+        // //gerartxt(dadosProcessos)
+        
+        
 
         // //--------------------------------------------------------------------------------
 
@@ -368,8 +414,6 @@
     console.log("Pastas prontas para nova extração.");
 
     });
-
-
 
 
 

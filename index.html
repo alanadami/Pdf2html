@@ -119,7 +119,7 @@
             document.getElementById("uploadForm").addEventListener("submit", async (event) => {
                 event.preventDefault();
                 btnConverter.disabled = true;
-                btnConverter.textContent = "Convertendo...";
+                btnConverter.textContent = "Extraindo...";
 
                 const formData = new FormData(event.target);
 
@@ -132,7 +132,7 @@
                     alert("Erro ao enviar o arquivo.");
                 } finally {
                     btnConverter.disabled = false;
-                    btnConverter.textContent = "Extrair";
+                    btnConverter.textContent = "Dados extraidos";
                 }
             });
 
