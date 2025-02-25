@@ -1,9 +1,9 @@
 {
   "name": "extrator-pdf",
   "version": "1.0.0",
-  "bin": "index02.js",
+  "bin": "extratorPDF.js",
   "description": "Convert PDF to Html",
-  "main": "index02.js",
+  "main": "extratorPDF.js",
   "type": "commonjs",
   "scripts": {
     "build": "pkg . --out-path dist",
